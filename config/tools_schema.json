@@ -1,0 +1,71 @@
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "search_spaces",
+        "description": "Search for live or scheduled X Spaces by keyword or topic. Returns a short spoken summary and raw results.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Search query, e.g. 'AI agents', 'crypto', 'Elon'"
+            },
+            "state": {
+              "type": "string",
+              "enum": ["live", "scheduled", "all"],
+              "description": "Filter by Space state. Default live."
+            },
+            "max_results": {
+              "type": "integer",
+              "description": "Maximum number of results to return (1-10 recommended).",
+              "minimum": 1,
+              "maximum": 20
+            }
+          },
+          "required": ["query"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "get_space_details",
+        "description": "Get detailed information about a specific Space by its ID, including hosts and speakers when available.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "space_id": {
+              "type": "string",
+              "description": "The Space ID returned from a previous search."
+            }
+          },
+          "required": ["space_id"]
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "confirm_selection",
+        "description": "Finalize the caller's choice of Space. Returns the join URL and confirmation message.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "space_id": {
+              "type": "string",
+              "description": "The selected Space ID."
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["link", "bridge"],
+              "description": "Discovery (link) or full audio bridge mode. Default link."
+            }
+          },
+          "required": ["space_id"]
+        }
+      }
+    }
+  ]
+}
