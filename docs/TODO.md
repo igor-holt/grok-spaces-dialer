@@ -1,5 +1,7 @@
 # Grok Spaces Dialer – To-Do List
 
+> **Status, November 10, 2026.** Discovery is the exhibit prototype: live X API search when `X_BEARER_TOKEN` is set, and a public page at the Worker root. Phone numbers, call audio, and Space audio bridging are not built.
+
 ## Phase 0 – Foundation (Done / In Progress)
 - [x] Define product concept & user stories
 - [x] Research X Spaces API + xAI Voice/Telephony capabilities
@@ -43,8 +45,11 @@
 - [ ] Documentation & open-source release (if desired)
 - [ ] Soft launch campaign
 
-## Immediate Next Actions (This Session)
-1. Finish Python Spaces client + notebook demos
-2. Write agent system prompt and tool JSON schema
-3. Create GitHub repo and push scaffold
-4. Outline Twilio / xAI Realtime integration skeleton
+## Exhibit slice
+
+- [x] Public discovery page, privacy policy, and terms
+- [x] Worker `GET /api/search` calls the X API when `X_BEARER_TOKEN` is set
+- [x] Sample data only when that secret is missing, and the response says so
+- [ ] Operator sets `X_BEARER_TOKEN` on the deployed Worker and confirms a live search
+
+Phone dial-in and Space audio bridging are not part of this slice and are not built.
