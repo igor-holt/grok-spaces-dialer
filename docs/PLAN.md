@@ -1,10 +1,12 @@
 # Grok Spaces Dialer – Development & Campaign Plan
 
+> **Status, November 10, 2026.** The working prototype discovers public X Spaces and links to them on X. It does not place phone calls, and it does not join, stream, or bridge Space audio. Sections below that describe a phone bridge or “getting into” a Space are earlier plans, not built behavior.
+
 ## Goals
 
-**Primary**: Deliver a reliable phone interface that lets anyone find and join (or be bridged into) X Spaces without fighting the native client.
+**Primary**: A voice-first web demo that finds public X Spaces by topic, shows a short list, and hands off an `https://x.com/i/spaces/<id>` link.
 
-**Secondary**: Demonstrate xAI Voice Agent + tool-calling power; create a reusable pattern for other “phone-as-client” products.
+**Not built**: Phone dial-in, Twilio or SIP, and any audio bridge that would join a Space or play Space audio on a call.
 
 ## Timeline (Aggressive Prototype → Soft Launch)
 
@@ -12,16 +14,16 @@
 |------|-------|--------------|
 | 1 | Foundation + Discovery MVP | Working call → search → link hand-off |
 | 2 | UX polish + regional numbers | AU + US numbers, robust dialogue, logging |
-| 3–4 | Bridge experiments | Optional audio relay prototype (high risk/reward) |
+| 3–4 | Not built | Audio relay was a later idea. It is not implemented. |
 | 5 | Hardening + observability | Cost controls, guardrails, analytics |
 | 6 | Soft launch | Private beta with selected users (Sky + core circle) |
 
 ## Technical Stack
 
-- **Voice / Telephony**: xAI Voice Agent Builder + Realtime API; Twilio or xAI SIP for numbers
+- **Voice / Telephony (not built)**: xAI Voice Agent Builder + Realtime API; Twilio or xAI SIP for numbers
 - **LLM / Tools**: Grok (via xAI) with function calling
 - **Spaces Data**: Official X API v2 Spaces search + lookup
-- **Optional Relay**: Headless / cookie-auth agents (evaluate risk)
+- **Optional relay (not built)**: Joining a Space or bridging its audio was considered and is not implemented
 - **Backend**: Node.js (telephony examples) or Python (search + orchestration); Vercel or dedicated server
 - **Observability**: xAI call transcripts + custom logging
 
@@ -48,7 +50,7 @@
 1. **Internal / Friends & Family**: Sky (AU), core Genesis Conductor / Kovach circle.
 2. **X Announcement**: Thread + Space demo once MVP is stable.
 3. **Target Users**: Heavy Spaces listeners who complain about stability; people on the go; international users.
-4. **Messaging**: “Call Grok. Get into the Space. No app wrestling.”
+4. **Messaging**: “Find a public Space by topic and open it on X.” The demo does not join or play the Space.
 5. **Pricing Experiment**: Free discovery tier; paid bridge or longer sessions later.
 6. **Feedback Loop**: Post-call short survey or “rate this Space finder” prompt.
 

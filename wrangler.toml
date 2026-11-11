@@ -1,0 +1,8 @@
+# Public hostname: grok-spaces-dialer.iholt.workers.dev
+# Do not rename this Worker. Cloudflare Access is attached to that hostname.
+name = "grok-spaces-dialer"
+main = "workers/grok-spaces-dialer.js"
+compatibility_date = "2026-01-15"
+
+# Set the bearer token out of band. There is no token in this file.
+#   npx wrangler secret put X_BEARER_TOKEN

@@ -1,69 +1,75 @@
 # Grok Spaces Dialer – Workflows
 
-## 1. Primary User Flow (Caller Perspective)
+The working product is discovery. A person searches public X Spaces, hears or reads a short list, and opens the chosen Space on X. This repository does not place phone calls and does not join, stream, or bridge Space audio.
 
-1. **Dial** the assigned number (local AU for Sky, US for others, or international).
-2. **Greeting**: Agent answers with short intro  
-   “Hi, this is Grok Spaces. Tell me a topic, host, or say ‘what’s live right now’.”
-3. **Intent**: Caller speaks request  
-   - “Find Spaces about AI agents”  
-   - “Is there a Space by @elonmusk live?”  
-   - “What’s happening in crypto right now?”
-4. **Search & Present**: Agent calls tools, then reads back 1–3 options  
-   “There’s a live Space titled ‘…’ hosted by @user, currently speaking: A, B. About 120 listeners. Say ‘that’s the one’, ‘next’, or ‘more details’.”
-5. **Selection Loop**:  
-   - “That’s the one” → confirm and proceed  
-   - “Next” → next result  
-   - “More details” → expand speakers / description  
-   - “Search again” / new topic
-6. **Connect**:
-   - **Discovery mode (MVP)**: Agent gives the direct Space link + short instructions (“Open X and paste this, or tap the link I can text you”).
-   - **Bridge mode (future)**: “You’re connected. I’m listening with you. Say ‘I want to speak’ if you’d like me to request the mic.”
-7. **End / Transfer**: Caller hangs up, says “done”, or agent times out gracefully. Optional summary SMS.
+## What works today
 
-## 2. System / Agent Workflow
+1. Open the Worker root, `GET /`.
+2. Type a topic and choose live, scheduled, or all.
+3. The page calls `GET /api/search?q=...&state=...`.
+4. When the Worker secret `X_BEARER_TOKEN` is set, that route calls the X API and returns `"source": "live"`.
+5. The page shows title, host, state, participant count when X included `participant_count`, and **Open in X** (`https://x.com/i/spaces/<id>`).
+6. **Hear summary** speaks the short list with `speechSynthesis`. The same text is on the page.
+7. The person listens on X, in their own client, after they open the link.
+
+Without `X_BEARER_TOKEN`, step 4 does not call X. The response is `"source": "sample"`, the copy says it is sample data, and those rows have no X link.
+
+`GET /privacy` and `GET /terms` are part of the same public site.
+
+## How a search runs
 
 ```
-Incoming Call
-    ↓
-xAI Voice Agent session starts (Realtime or Builder)
-    ↓
-System prompt loaded + tools available
-    ↓
-User utterance → STT → LLM decides tool use
-    ↓
-Tool: search_spaces(query, state="live")
-    ↓
-X API v2 /2/spaces/search
-    ↓
-Results + expansions (hosts, speakers) returned to LLM
-    ↓
-LLM generates spoken response (TTS)
-    ↓
-User selects → tool: get_space_details(id) or confirm_selection
-    ↓
-Final action: return join URL / start relay / log session
+Browser  GET /api/search?q=topic&state=all
+            |
+            v
+Cloudflare Worker
+            |
+            |-- no X_BEARER_TOKEN --> labeled sample Spaces, X is not called
+            |
+            |-- cache hit (about 60 seconds) --> previous live list
+            |
+            v
+GET https://api.x.com/2/spaces/search
+            |
+            |-- host username missing on a result
+            v
+GET https://api.x.com/2/spaces?ids=...
+            |
+            v
+JSON: source, spoken_summary, spaces[].x_url, audio_bridge: false
 ```
 
-## 3. Tool Call Sequence (Example)
+The Python client in `src/spaces_client.py` can make the same X calls, plus `GET /2/spaces/by/creator_ids`, for a script or notebook. It has no sample fallback: a missing token raises, and an HTTP error raises `SpacesApiError`.
 
-User: “Live Spaces about artificial intelligence”
+## X API endpoints
 
-1. `search_spaces(query="artificial intelligence", state="live", max_results=5)`
-2. For top result: `get_space(id="1DXxy...")` + expand host_ids / speaker_ids
-3. Present ranked list
-4. On confirm: `finalize_selection(space_id, mode="link")` → returns `https://x.com/i/spaces/{id}`
+| Endpoint | Who calls it |
+| --- | --- |
+| `GET https://api.x.com/2/spaces/search` | Worker `/api/search`, Python `SpacesClient.search` |
+| `GET https://api.x.com/2/spaces?ids=` | Worker, when search did not include a host username; Python `get_by_ids` |
+| `GET https://api.x.com/2/spaces/by/creator_ids` | Python `get_by_creators` only. Not a public Worker route. |
 
-## 4. Error & Edge Paths
+Requests send `Authorization: Bearer <X_BEARER_TOKEN>`, `space.fields` including `title`, `state`, `host_ids`, `creator_id`, `participant_count`, and `scheduled_start`, and user expansions `creator_id,host_ids` with `user.fields=name,username`. Redirects are not followed. The token is not returned to the browser.
 
-- No results → “Nothing live on that topic right now. Try a broader term or check scheduled Spaces.”
-- API rate limit / outage → graceful apology + fallback to cached popular Spaces or “try again in a minute”.
-- Ambiguous selection → re-confirm.
-- Long silence → gentle prompt or end session.
-- Caller wants to speak in Space → (bridge mode) request speaker role via relay account.
+## Errors
 
-## 5. Multi-Region / Multi-Number
+- Empty topic: HTTP 400, no call to X.
+- No matching Spaces: HTTP 200, `source` live, empty list, spoken “I couldn't find any matching Spaces right now.”
+- X HTTP 429: HTTP 429, `source` live, empty list. Sample Spaces are not filled in.
+- X auth failure, HTTP 5xx, timeout, or redirect: an error response, `source` live, empty list. Sample Spaces are not filled in.
+- Too many searches from one IP in a minute: HTTP 429 from the Worker. The limit is per isolate and is only a cushion; X’s own rate limit still applies.
+- No token configured: HTTP 200, `source` sample, fictional rows, or an empty sample list if nothing matches. The spoken summary says it is sample data.
 
-- Same agent backend.
-- Numbers provisioned per region (Twilio or xAI SIP).
-- Caller ID or number used can optionally bias language or default search region (future).
+## Not built
+
+These were early ideas. They are not implemented, not deployed, and not something the demo claims:
+
+- A phone number, Twilio, SIP, or an incoming call.
+- Playing Space audio on a call, joining a Space from the server, requesting the mic, or a relay account.
+- SMS follow-ups, caller accounts, and regional phone routing.
+
+Do not describe a caller as “connected” to a Space. The handoff is the X link.
+
+## Public paths and Access
+
+The demo only needs `/`, `/privacy`, `/terms`, `/api/search`, and `/favicon.ico`. Cloudflare Access already publishes those (trailing slash and the search query string included) plus `/assets/*` and `/static/*`. This build inlines CSS and JavaScript, so it does not fetch `/assets` or `/static`. Other paths, including any future webhook, stay behind Access and are not required for the exhibit.

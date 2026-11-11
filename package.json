@@ -1,0 +1,10 @@
+{
+  "name": "grok-spaces-dialer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 workers/grok-spaces-dialer.test.js",
+    "test:python": "python3 -m unittest discover -s tests -v",
+    "preview": "node scripts/dev_worker.mjs"
+  }
+}

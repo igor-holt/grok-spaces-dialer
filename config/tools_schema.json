@@ -49,7 +49,7 @@
       "type": "function",
       "function": {
         "name": "confirm_selection",
-        "description": "Finalize the caller's choice of Space. Returns the join URL and confirmation message.",
+        "description": "Finalize the choice of Space by returning its public X link. Does not join the Space or start audio.",
         "parameters": {
           "type": "object",
           "properties": {
@@ -59,8 +59,8 @@
             },
             "mode": {
               "type": "string",
-              "enum": ["link", "bridge"],
-              "description": "Discovery (link) or full audio bridge mode. Default link."
+              "enum": ["link"],
+              "description": "Only link mode exists. Returns https://x.com/i/spaces/{id}. Joining, streaming, or bridging Space audio is not built."
             }
           },
           "required": ["space_id"]
